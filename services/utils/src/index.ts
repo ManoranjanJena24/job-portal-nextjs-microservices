@@ -3,9 +3,11 @@ import dotenv from 'dotenv'
 import routes from './routes.js'
 import cors from 'cors'
 import { v2 as cloudinary } from "cloudinary";
+import {startSendMailConsumer} from "./consumer.js"
 
 dotenv.config();
 
+startSendMailConsumer()
 const app = express()
 app.use(cors())
 
