@@ -7,6 +7,7 @@ import bcrypt from 'bcrypt'
 import jwt  from "jsonwebtoken";
 import { forgotPasswordTemplate } from "../template.js";
 import { publishToTopic } from "../producer.js";
+import { redisClient } from "../index.js";
 
 export const registerUser = TryCatch(async(req, res, next)=>{
     const { name, email, password, phoneNumber, role, bio } = req.body;
@@ -181,13 +182,19 @@ const resetToken = jwt.sign({
 
 const resetLink = `${process.env.Frontend_Url}/reset/${resetToken}`
 
+await redisClient.set(`forgot:${email}` , resetToken , {
+   EX:900 , 
+} )
+
 const message = {
    to:email , 
    subject: "RESET Your Password - hireheaven",
    html:forgotPasswordTemplate(resetLink)
 }
 
-publishToTopic("send-mail" , message);
+publishToTopic("send-mail" , message).catch((error)=>{
+   console.log("failed to send message" , error)
+})
 
 res.json({
    message:"If that email exists , we have sent a reset link",
